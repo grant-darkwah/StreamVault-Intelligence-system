@@ -4,3 +4,6 @@ requests
 python-dotenv
 pytest
 jupyter
+streamlit
+
+plotly

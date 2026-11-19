@@ -86,6 +86,8 @@ def transform_cached_data(
                 "movie_id": movie_id,
                 "title": details.get("title"),
                 "original_title": details.get("original_title"),
+                "poster_path": details.get("poster_path"),
+                "backdrop_path": details.get("backdrop_path"),
                 "release_date": details.get("release_date"),
                 "release_year": (
                     int(details["release_date"][:4])

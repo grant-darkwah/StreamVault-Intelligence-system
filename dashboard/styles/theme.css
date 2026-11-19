@@ -1,0 +1,89 @@
+:root {
+    --bg: #0b1120;
+    --surface: #111b2e;
+    --surface-raised: #17243a;
+    --border: #263650;
+    --text: #e8eef7;
+    --muted: #91a1b8;
+    --accent: #36c6b3;
+    --accent-soft: rgba(54, 198, 179, 0.12);
+    --warning: #e7b65c;
+    --danger: #ed7777;
+}
+
+.stApp {
+    background: var(--bg);
+    color: var(--text);
+}
+
+[data-testid="stSidebar"] {
+    background: #0e192b;
+    border-right: 1px solid var(--border);
+}
+
+[data-testid="stHeader"] {
+    background: transparent;
+}
+
+.block-container {
+    max-width: 1600px;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+h1, h2, h3 {
+    color: var(--text);
+    letter-spacing: -0.025em;
+}
+
+p, label, .stCaption {
+    color: var(--muted);
+}
+
+[data-testid="stMetric"] {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+}
+
+[data-testid="stMetricLabel"] {
+    color: var(--muted);
+}
+
+[data-testid="stMetricValue"] {
+    color: var(--text);
+}
+
+[data-testid="stDataFrame"] {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.stButton > button {
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+}
+
+.stButton > button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+hr {
+    border-color: var(--border);
+}
+
+a {
+    color: var(--accent);
+}
+
+[data-testid="stAlert"] {
+    border-radius: 10px;
+}
+
+footer {
+    visibility: hidden;
+}
