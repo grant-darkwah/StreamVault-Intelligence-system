@@ -2,6 +2,7 @@
 
 import json
 
+import pandas as pd
 import pytest
 import requests
 from pipeline import extract
@@ -157,7 +158,7 @@ def test_manifest_records_acquisition_events(
 ):
     """Verify acquisition events are appended to the manifest."""
 
-    movie_data = {"id": 155, "title": "The Dark Knight"}
+    movie_data = {"id": 155, "title": "The Dark Knight"}  # noqa: F841
 
     extract.append_manifest(
         {
@@ -183,3 +184,221 @@ def test_manifest_records_acquisition_events(
     assert len(records) == 2
     assert records[0]["endpoint"] == "details"
     assert records[1]["endpoint"] == "credits"
+
+
+def test_extract_candidates_processes_unique_valid_ids(monkeypatch):
+    """Verify only unique valid IDs are sent for extraction."""
+
+    candidates = pd.DataFrame(
+        {
+            "tmdb_id": ["155", "165", "155", "", "-1", "242"],
+            "is_valid": [True, True, True, False, False, True],
+        }
+    )
+
+    extracted_ids = []
+
+    def fake_extract_movie(session, movie_id):
+        extracted_ids.append(movie_id)
+
+        return {
+            "movie_id": movie_id,
+            "details": {"status": "success"},
+            "credits": {"status": "success"},
+        }
+
+    monkeypatch.setattr(extract, "extract_movie", fake_extract_movie)
+
+    results = extract.extract_candidates(candidates, session=None)
+
+    assert extracted_ids == [155, 165, 242]
+    assert len(results) == 3
+
+
+def test_summarize_acquisition_counts_endpoint_statuses():
+    """Verify endpoint outcomes are counted independently."""
+
+    results = [
+        {
+            "movie_id": 155,
+            "details": {"status": "success"},
+            "credits": {"status": "success"},
+        },
+        {
+            "movie_id": 165,
+            "details": {"status": "cache_hit"},
+            "credits": {"status": "not_found"},
+        },
+        {
+            "movie_id": 242,
+            "details": {"status": "request_failed"},
+            "credits": {"status": "success"},
+        },
+    ]
+
+    summary = extract.summarize_acquisition(results)
+
+    assert summary["unique_movies_processed"] == 3
+    assert summary["details"] == {
+        "success": 1,
+        "cache_hit": 1,
+        "request_failed": 1,
+    }
+    assert summary["credits"] == {
+        "success": 2,
+        "not_found": 1,
+    }
+
+
+def test_reconciliation_preserves_duplicate_and_invalid_rows():
+    """Verify the first duplicate occurrence represents extraction."""
+
+    candidates = pd.DataFrame(
+        {
+            "source_row": [1, 2, 3, 4],
+            "tmdb_id_raw": ["155", "155", "", "-1"],
+            "tmdb_id": ["155", "155", "", "-1"],
+            "is_valid": [True, True, False, False],
+            "is_duplicate": [True, True, False, False],
+        }
+    )
+
+    results = [
+        {
+            "movie_id": 155,
+            "details": {"status": "success"},
+            "credits": {"status": "success"},
+        }
+    ]
+
+    report = extract.build_reconciliation_report(candidates, results)
+
+    assert len(report) == 4
+    assert report["source_row"].tolist() == [1, 2, 3, 4]
+
+    assert report["extraction_reference"].tolist() == [
+        "unique_record",
+        "duplicate_reference",
+        "invalid_id",
+        "invalid_id",
+    ]
+
+    assert report["details_status"].tolist() == [
+        "success",
+        "success",
+        "invalid_id",
+        "invalid_id",
+    ]
+
+
+def test_empty_extraction_summary():
+    """Verify summary generation when no valid IDs are available."""
+
+    summary = extract.summarize_acquisition([])
+
+    assert summary["unique_movies_processed"] == 0
+    assert summary["details"] == {}
+    assert summary["credits"] == {}
+
+
+def test_session_has_retry_configuration():
+    """Verify transient HTTP failures have a retry policy."""
+
+    session = extract.create_session()
+
+    adapter = session.get_adapter("https://")
+    retry_policy = adapter.max_retries
+
+    assert retry_policy.total == 5
+    assert retry_policy.connect == 5
+    assert retry_policy.read == 2
+    assert retry_policy.status == 5
+    assert retry_policy.respect_retry_after_header is True
+
+    assert {429, 500, 502, 503, 504}.issubset(set(retry_policy.status_forcelist))
+
+    session.close()
+
+
+def test_extract_movie_reuses_both_cached_endpoints(
+    temporary_extraction_paths,
+    monkeypatch,
+):
+    """Verify an interrupted extraction can resume from both caches."""
+
+    details_data = {
+        "id": 155,
+        "title": "The Dark Knight",
+    }
+
+    credits_data = {
+        "id": 155,
+        "cast": [],
+        "crew": [],
+    }
+
+    extract.save_cached_response(155, "details", details_data)
+    extract.save_cached_response(155, "credits", credits_data)
+
+    session = requests.Session()
+
+    def unexpected_request(*args, **kwargs):
+        pytest.fail("An API request occurred despite cached responses.")
+
+    monkeypatch.setattr(session, "get", unexpected_request)
+
+    result = extract.extract_movie(session, 155)
+
+    assert result["details"]["status"] == "cache_hit"
+    assert result["credits"]["status"] == "cache_hit"
+
+    assert result["details"]["data"] == details_data
+    assert result["credits"]["data"] == credits_data
+
+    session.close()
+
+
+def test_save_extraction_outputs(
+    temporary_extraction_paths,
+    monkeypatch,
+):
+    """Verify acquisition outputs are saved correctly."""
+
+    import pandas as pd
+
+    output_dir = temporary_extraction_paths["cache_dir"].parent / "out"
+
+    monkeypatch.setattr(extract, "OUTPUT_DIR", output_dir)
+
+    summary = {
+        "unique_movies_processed": 1,
+        "details": {"success": 1},
+        "credits": {"success": 1},
+    }
+
+    reconciliation = pd.DataFrame(
+        {
+            "source_row": [1],
+            "tmdb_id": ["155"],
+            "extraction_reference": ["unique_record"],
+            "details_status": ["success"],
+            "credits_status": ["success"],
+        }
+    )
+
+    extract.save_extraction_outputs(summary, reconciliation)
+
+    summary_path = output_dir / "acquisition_summary.json"
+    reconciliation_path = output_dir / "candidate_reconciliation.csv"
+
+    assert summary_path.exists()
+    assert reconciliation_path.exists()
+
+    with summary_path.open("r", encoding="utf-8") as file:
+        saved_summary = json.load(file)
+
+    saved_reconciliation = pd.read_csv(reconciliation_path)
+
+    assert saved_summary == summary
+    assert len(saved_reconciliation) == 1
+    assert saved_reconciliation.loc[0, "tmdb_id"] == 155
