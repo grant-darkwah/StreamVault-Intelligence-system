@@ -1,0 +1,3 @@
+| ID | What we saw | The spec said | Verdict | Decision | Handled in | Proved by |
+|---|---|---|---|---|---|---|
+| F1 | 12 rows repeat six valid TMDb IDs: 155, 680, 278, 603, 1891 and 550. | 127 candidate IDs from three sources. | Requires investigation | Preserve original records. Investigate source overlap before deduplication. | `pipeline/ingest.py` | tests/test_ingest.py::test_duplicate_ids_are_detected |
