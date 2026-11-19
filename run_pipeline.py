@@ -1,20 +1,25 @@
 import logging
 
+from pipeline.analyze import (
+    calculate_film_metrics,
+    load_analytical_data,
+    rank_franchise_collections,
+    rank_standalone_titles,
+)
+from pipeline.checks import validate_transformed_data
 from pipeline.config import OUTPUT_DIR, require_api_key
-from pipeline.ingest import load_candidate_ids, report_candidate_ids
 from pipeline.extract import (
-    DETAILS_CACHE_DIR,
     CREDITS_CACHE_DIR,
+    DETAILS_CACHE_DIR,
+    build_reconciliation_report,
     create_session,
     extract_candidates,
-    summarize_acquisition,
-    build_reconciliation_report,
     save_extraction_outputs,
+    summarize_acquisition,
 )
-from pipeline.transform import transform_cached_data
-from pipeline.checks import validate_transformed_data
+from pipeline.ingest import load_candidate_ids, report_candidate_ids
 from pipeline.load import save_datasets
-
+from pipeline.transform import transform_cached_data
 
 logging.basicConfig(
     level=logging.INFO,
@@ -72,10 +77,47 @@ def main():
     # 7. Persist validated datasets as Parquet.
     saved_files = save_datasets(datasets, OUTPUT_DIR)
 
-    logger.info("Pipeline completed successfully.")
+    logger.info("Analytical datasets saved successfully.")
 
     for dataset, path in saved_files.items():
         logger.info("%s saved to %s", dataset, path)
+
+    # 8. Load persisted analytical datasets.
+    analytical_data = load_analytical_data(OUTPUT_DIR)
+
+    # 9. Calculate film-level analytical metrics.
+    films = calculate_film_metrics(analytical_data["films"])
+
+    # 10. Create the 2000-onward comparison dataset.
+    recent_films = films.loc[films["release_year"] >= 2000].copy()
+
+    # 11. Generate franchise and standalone rankings.
+    rankings = {
+        "franchise_rankings_all_years": (rank_franchise_collections(films)),
+        "franchise_rankings_2000_onward": (rank_franchise_collections(recent_films)),
+        "standalone_rankings_all_years": (rank_standalone_titles(films)),
+        "standalone_rankings_2000_onward": (rank_standalone_titles(recent_films)),
+    }
+
+    # 12. Export decision-support results.
+    for name, ranking in rankings.items():
+        output_path = OUTPUT_DIR / f"{name}.csv"
+
+        ranking.to_csv(
+            output_path,
+            index=False,
+        )
+
+        logger.info(
+            "%s exported: %s rows -> %s",
+            name,
+            len(ranking),
+            output_path,
+        )
+
+    logger.info("Decision-support analysis completed successfully.")
+
+    logger.info("StreamVault pipeline completed successfully.")
 
     return 0
 
