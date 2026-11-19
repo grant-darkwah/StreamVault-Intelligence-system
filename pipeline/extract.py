@@ -18,6 +18,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+import re
 from pipeline.config import (
     CACHE_DIR,
     OUTPUT_DIR,
@@ -28,16 +29,38 @@ from pipeline.config import (
 )
 from pipeline.ingest import load_candidate_ids
 
-
 # ---------------------------------------------------------------------
 # Logging configuration
 # ---------------------------------------------------------------------
 
-# Configure logging without exposing API credentials.
+
+class SensitiveDataFilter(logging.Filter):
+    """Redact sensitive credentials from log messages."""
+
+    API_KEY_PATTERN = re.compile(r"(?i)(api_key=)[^&\s]+")
+
+    def filter(self, record):
+        message = record.getMessage()
+
+        message = self.API_KEY_PATTERN.sub(
+            r"\1[REDACTED]",
+            message,
+        )
+
+        record.msg = message
+        record.args = ()
+
+        return True
+
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
 )
+
+# Apply redaction to records emitted by HTTP libraries and the pipeline.
+for handler in logging.getLogger().handlers:
+    handler.addFilter(SensitiveDataFilter())
 
 logger = logging.getLogger(__name__)
 
