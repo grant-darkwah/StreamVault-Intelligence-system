@@ -11,7 +11,7 @@ from dashboard.metrics import (
 
 
 def render_page_header(title: str, subtitle: str):
-    """Render a consistent page heading."""
+    """Render a consistent executive dashboard heading."""
 
     st.markdown(f"# {title}")
     st.caption(subtitle)
@@ -19,7 +19,7 @@ def render_page_header(title: str, subtitle: str):
 
 
 def render_section_header(title: str, description: str = ""):
-    """Render a section heading."""
+    """Render a consistent section heading."""
 
     st.subheader(title)
 
@@ -28,7 +28,7 @@ def render_section_header(title: str, description: str = ""):
 
 
 def render_kpi(label: str, value: str, delta: str | None = None):
-    """Render a reusable KPI card."""
+    """Render a polished KPI card."""
 
     st.metric(
         label=label,
@@ -39,7 +39,7 @@ def render_kpi(label: str, value: str, delta: str | None = None):
 
 
 def render_data_notice(message: str, level: str = "info"):
-    """Render a consistent data-quality notice."""
+    """Render a consistent information or risk notice."""
 
     if level == "warning":
         st.warning(message)
@@ -62,7 +62,7 @@ def render_dataframe(data, height: int = 420):
 
 def render_featured_film(
     film: dict,
-    label: str = "FEATURED ACQUISITION",
+    label: str = "FEATURED OPPORTUNITY",
 ):
     """Render a cinematic featured-film banner."""
 
@@ -83,11 +83,10 @@ def render_featured_film(
 
     revenue = format_currency(film.get("revenue") or 0)
 
-    # Keep the HTML on one line so Streamlit does not
-    # interpret the multiline markup as a code block.
     banner = (
         f'<div style="'
-        f"background-image:linear-gradient(90deg,rgba(8,14,27,.97),rgba(8,14,27,.25)),"
+        f"background-image:linear-gradient("
+        f"90deg,rgba(8,14,27,.97),rgba(8,14,27,.25)),"
         f"url(&quot;{backdrop_url}&quot;);"
         f"background-position:center;"
         f"background-size:cover;"
@@ -99,16 +98,24 @@ def render_featured_film(
         f"display:flex;"
         f"flex-direction:column;"
         f'justify-content:center;">'
-        f'<div style="color:#36c6b3;font-size:11px;'
-        f'font-weight:800;letter-spacing:2px;">'
+        f'<div style="color:#36c6b3;'
+        f"font-size:11px;"
+        f"font-weight:800;"
+        f'letter-spacing:2px;">'
         f"{label}</div>"
-        f'<div style="color:white;font-size:38px;'
-        f'font-weight:800;margin-top:14px;line-height:1.15;">'
+        f'<div style="color:white;'
+        f"font-size:38px;"
+        f"font-weight:800;"
+        f"margin-top:14px;"
+        f'line-height:1.15;">'
         f"{title}</div>"
-        f'<div style="color:#e0e7f0;font-size:14px;'
+        f'<div style="color:#e0e7f0;'
+        f"font-size:14px;"
         f'margin-top:16px;">'
-        f"{year} &nbsp;·&nbsp; Rating {rating_text}"
-        f" &nbsp;·&nbsp; Reported revenue {revenue}"
+        f"{year} &nbsp;·&nbsp; "
+        f"Audience rating {rating_text}"
+        f" &nbsp;·&nbsp; "
+        f"Reported revenue {revenue}"
         f"</div></div>"
     )
 
@@ -118,8 +125,8 @@ def render_featured_film(
     )
 
 
-def render_movie_card(film: dict, score=None):
-    """Render a poster-based standalone film card."""
+def render_movie_card(film: dict):
+    """Render a stakeholder-friendly standalone film card."""
 
     poster_url = get_poster_url(film.get("poster_path"))
 
@@ -136,17 +143,17 @@ def render_movie_card(film: dict, score=None):
 
         year = film.get("release_year", "N/A")
         rating = film.get("vote_average")
+        votes = film.get("vote_count")
+        revenue = film.get("revenue")
 
         rating_text = f"{float(rating):.1f}/10" if pd.notna(rating) else "N/A"
 
-        st.caption(f"{year} · Rating {rating_text}")
+        st.caption(f"{year} · Audience rating: {rating_text}")
 
-        if score is not None and pd.notna(score):
-            st.caption(f"Composite score: {float(score):.3f}")
+        if pd.notna(votes):
+            st.caption(f"{int(votes):,} audience votes")
 
-        revenue = film.get("revenue")
-
-        if revenue is not None and pd.notna(revenue):
+        if pd.notna(revenue):
             st.caption(f"Reported revenue: {format_currency(revenue)}")
 
 
@@ -155,7 +162,7 @@ def render_franchise_card(
     rank: int,
     films: pd.DataFrame,
 ):
-    """Render a simplified franchise card with representative artwork."""
+    """Render a visually consistent franchise opportunity card."""
 
     collection_id = collection.get("collection_id")
 
@@ -173,7 +180,7 @@ def render_franchise_card(
         representative = collection_films.iloc[0]
 
     with st.container(border=True):
-        st.caption(f"FRANCHISE #{rank}")
+        st.caption(f"PRIORITY OPPORTUNITY #{rank}")
 
         if representative is not None:
             poster_url = get_poster_url(representative.get("poster_path"))
@@ -191,10 +198,24 @@ def render_franchise_card(
         else:
             st.caption("Artwork unavailable")
 
-        st.markdown(f"**{collection.get('collection_name', 'Unnamed collection')}**")
-
-        median_revenue = collection.get("median_revenue")
-
-        st.markdown(
-            f"Median reported revenue: **{format_currency(median_revenue or 0)}**"
+        collection_name = collection.get(
+            "collection_name",
+            "Unnamed collection",
         )
+
+        st.markdown(f"**{collection_name}**")
+
+        sampled_titles = collection.get("sampled_titles")
+
+        audience_rating = collection.get("median_rating")
+
+        reported_revenue = collection.get("median_revenue")
+
+        if pd.notna(sampled_titles):
+            st.caption(f"{int(sampled_titles)} sampled films")
+
+        if pd.notna(audience_rating):
+            st.caption(f"Audience rating: {float(audience_rating):.1f}/10")
+
+        if pd.notna(reported_revenue):
+            st.caption(f"Reported revenue: {format_currency(reported_revenue)}")

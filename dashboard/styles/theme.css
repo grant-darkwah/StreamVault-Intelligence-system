@@ -1,24 +1,24 @@
+
 :root {
-    --bg: #0b1120;
-    --surface: #111b2e;
-    --surface-raised: #17243a;
-    --border: #263650;
-    --text: #e8eef7;
-    --muted: #91a1b8;
+    --bg: #080e1b;
+    --surface: #101a2c;
+    --surface-raised: #17253b;
+    --border: rgba(148, 163, 184, 0.14);
+    --text: #edf3fc;
+    --muted: #94a3b8;
     --accent: #36c6b3;
     --accent-soft: rgba(54, 198, 179, 0.12);
     --warning: #e7b65c;
     --danger: #ed7777;
 }
 
-.stApp {
-    background: var(--bg);
-    color: var(--text);
-}
+/* APPLICATION BACKGROUND */
 
-[data-testid="stSidebar"] {
-    background: #0e192b;
-    border-right: 1px solid var(--border);
+.stApp {
+    background:
+        radial-gradient(ellipse at 80% 0%, rgba(54, 198, 179, 0.055), transparent 35%),
+        var(--bg);
+    color: var(--text);
 }
 
 [data-testid="stHeader"] {
@@ -31,6 +31,81 @@
     padding-bottom: 3rem;
 }
 
+/* SIDEBAR */
+
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #101b2e 0%, #0b1424 100%);
+    border-right: 1px solid var(--border);
+}
+
+[data-testid="stSidebar"] > div:first-child {
+    padding-top: 1.5rem;
+}
+
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2 {
+    color: #f4f8ff;
+    font-size: 1.55rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.25rem;
+}
+
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+    color: #8193ad;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+}
+
+/* NAVIGATION RADIO ITEMS */
+
+[data-testid="stSidebar"] [role="radiogroup"] {
+    gap: 0.45rem;
+}
+
+[data-testid="stSidebar"] [role="radiogroup"] label {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 0.65rem 0.8rem;
+    transition: all 0.2s ease;
+}
+
+[data-testid="stSidebar"] [role="radiogroup"] label:hover {
+    background: var(--accent-soft);
+    border-color: rgba(54, 198, 179, 0.3);
+}
+
+[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {
+    background: linear-gradient(
+        90deg,
+        rgba(54, 198, 179, 0.17),
+        rgba(54, 198, 179, 0.045)
+    );
+    border: 1px solid rgba(54, 198, 179, 0.38);
+}
+
+[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) p {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+[data-testid="stSidebar"] [role="radiogroup"] label p {
+    color: #b8c5d8;
+    font-size: 0.9rem;
+    letter-spacing: 0;
+    font-weight: 500;
+}
+
+/* SIDEBAR DIVIDERS */
+
+[data-testid="stSidebar"] hr {
+    border-color: var(--border);
+    margin: 1.2rem 0;
+}
+
+/* TYPOGRAPHY */
+
 h1, h2, h3 {
     color: var(--text);
     letter-spacing: -0.025em;
@@ -40,11 +115,19 @@ p, label, .stCaption {
     color: var(--muted);
 }
 
+/* METRIC CARDS */
+
 [data-testid="stMetric"] {
-    background: var(--surface);
+    background: linear-gradient(145deg, #142138, #101a2c);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 18px 20px;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+[data-testid="stMetric"]:hover {
+    border-color: rgba(54, 198, 179, 0.4);
+    transform: translateY(-2px);
 }
 
 [data-testid="stMetricLabel"] {
@@ -55,16 +138,22 @@ p, label, .stCaption {
     color: var(--text);
 }
 
+/* TABLES */
+
 [data-testid="stDataFrame"] {
     border: 1px solid var(--border);
     border-radius: 10px;
+    overflow: hidden;
 }
 
+/* BUTTONS */
+
 .stButton > button {
-    border-radius: 8px;
+    border-radius: 9px;
     border: 1px solid var(--border);
     background: var(--surface-raised);
     color: var(--text);
+    transition: all 0.2s ease;
 }
 
 .stButton > button:hover {
@@ -72,17 +161,25 @@ p, label, .stCaption {
     color: var(--accent);
 }
 
-hr {
-    border-color: var(--border);
+/* ALERTS */
+
+[data-testid="stAlert"] {
+    border-radius: 12px;
 }
+
+/* LINKS */
 
 a {
     color: var(--accent);
 }
 
-[data-testid="stAlert"] {
-    border-radius: 10px;
+/* DIVIDERS */
+
+hr {
+    border-color: var(--border);
 }
+
+/* FOOTER */
 
 footer {
     visibility: hidden;
