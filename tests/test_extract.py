@@ -52,6 +52,7 @@ def test_successful_response_is_cached(
     result = extract.fetch_endpoint(session, 155, "details")
 
     assert result["status"] == "success"
+    assert result["data"] == movie_data
 
     cache_file = temporary_extraction_paths["details_dir"] / "155.json"
     assert cache_file.exists()

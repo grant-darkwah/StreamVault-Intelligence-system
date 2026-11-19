@@ -242,6 +242,7 @@ def fetch_endpoint(
                 "endpoint": endpoint,
                 "status": "success",
                 "http_status": response.status_code,
+                "data": data,
             }
 
     except requests.exceptions.JSONDecodeError:
