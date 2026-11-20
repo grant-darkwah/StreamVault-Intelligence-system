@@ -228,11 +228,6 @@ __pycache__/
 # Secrets
 .env
 
-# Cached API responses
-data/raw/
-data/cache/
-api_cache/
-
 # Generated outputs
 out/
 

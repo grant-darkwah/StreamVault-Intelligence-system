@@ -4,7 +4,7 @@
 
 **Data engineering and decision-support platform for film licensing analysis, powered by TMDb.**
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Dashboard-Streamlit-FF4B4B?logo=streamlit&logoColor=white)
 ![Data](https://img.shields.io/badge/Data-TMDb%20API-01B4E4)
 ![Tests](https://img.shields.io/badge/Tests-pytest-0A9EDC?logo=pytest&logoColor=white)
@@ -39,6 +39,9 @@ The system is designed to be **reproducible**, **transparent**, and **easy to ma
 
 ## 1. Installation and Setup
 
+> [!IMPORTANT]
+> This project targets **Python 3.12**. Newer versions (for example 3.13 or later) may not yet have prebuilt packages for every dependency, which can cause install failures.
+
 Choose your operating system to view the instructions.
 
 <details>
@@ -50,7 +53,21 @@ Choose your operating system to view the instructions.
 ### Prerequisites
 
 - [Git for Windows](https://git-scm.com/downloads/win)
-- [Python 3.10 or later](https://www.python.org/downloads/windows/) (enable **Add Python to PATH** during installation)
+- [Python 3.12](https://www.python.org/downloads/windows/) (enable **Add Python to PATH** during installation)
+
+You can have several Python versions installed side by side. To see which ones the `py` launcher can find:
+
+```powershell
+py -0
+```
+
+If `3.12` is not in the list, install it from the link above, or with winget:
+
+```powershell
+winget install Python.Python.3.12
+```
+
+Then close and reopen PowerShell.
 
 #### Step 1: Clone the repository
 
@@ -61,11 +78,13 @@ git clone https://github.com/grant-darkwah/StreamVault-Intelligence-system.git
 cd StreamVault-Intelligence-system
 ```
 
-#### Step 2: Create a virtual environment
+#### Step 2: Create a virtual environment with Python 3.12
 
 ```powershell
-py -3 -m venv .venv
+py -3.12 -m venv .venv
 ```
+
+> Use `py -3.12`, not `py -3`. The `-3` flag picks the newest Python installed, which may not be 3.12.
 
 #### Step 3: Activate the environment
 
@@ -79,20 +98,51 @@ If PowerShell blocks script execution, run the following, then activate again:
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ```
 
-#### Step 4: Install dependencies
+#### Step 4: Confirm the Python version
+
+```powershell
+python --version
+```
+
+The output must start with `Python 3.12`. If it shows a different version, stop and see [Troubleshooting](#windows-troubleshooting) below.
+
+#### Step 5: Install dependencies
 
 ```powershell
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-#### Step 5: Configure environment variables
+#### Step 6: Configure environment variables
 
 Create a `.env` file in the project root:
 
 ```env
 TMDB_API_KEY=your_tmdb_api_key
 ```
+
+#### Step 7 (VS Code users): Select the interpreter
+
+Press `Ctrl+Shift+P`, choose **Python: Select Interpreter**, then pick the one inside `.venv` (it should say `3.12`).
+
+<a id="windows-troubleshooting"></a>
+
+#### Windows troubleshooting
+
+**Error: `Microsoft Visual C++ 14.0 or greater is required` or `Failed building wheel for pyyaml`**
+
+This means the virtual environment was created with a Python version that has no prebuilt package for PyYAML (for example Python 3.15), so pip tried to compile it from source. Do not install the C++ Build Tools. Recreate the environment with Python 3.12 instead:
+
+```powershell
+deactivate
+Remove-Item -Recurse -Force .venv
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python --version
+pip install -r requirements.txt
+```
+
+If `py -3.12` reports that no matching Python was found, install Python 3.12 first (see Prerequisites above).
 
 </details>
 
@@ -105,7 +155,7 @@ TMDB_API_KEY=your_tmdb_api_key
 ### Prerequisites
 
 - [Git](https://git-scm.com/downloads/mac)
-- [Python 3.10 or later](https://www.python.org/downloads/macos/)
+- [Python 3.12](https://www.python.org/downloads/macos/)
 
 #### Step 1: Clone the repository
 
@@ -153,7 +203,7 @@ TMDB_API_KEY=your_tmdb_api_key
 
 ### Prerequisites
 
-Git, Python 3.10 or later, and Python virtual environment support.
+Git, Python 3.12, and Python virtual environment support.
 
 On Ubuntu/Debian:
 
@@ -205,7 +255,7 @@ TMDB_API_KEY=your_tmdb_api_key
 
 ## 2. Run the Data Pipeline
 
-Once setup is complete, run the command for your operating system:
+Once setup is complete (with the virtual environment activated), run the command for your operating system:
 
 | | OS | Command |
 |---|---|---|
