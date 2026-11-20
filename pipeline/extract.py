@@ -12,13 +12,13 @@ Responsibilities:
 
 import json
 import logging
+import re
 from datetime import UTC, datetime
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-import re
 from pipeline.config import (
     CACHE_DIR,
     OUTPUT_DIR,
