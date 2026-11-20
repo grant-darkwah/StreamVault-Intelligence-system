@@ -121,26 +121,6 @@ Create a `.env` file in the project root:
 TMDB_API_KEY=your_tmdb_api_key
 ```
 
-#### Step 7 (VS Code users): Select the interpreter
-
-Press `Ctrl+Shift+P`, choose **Python: Select Interpreter**, then pick the one inside `.venv` (it should say `3.12`).
-
-<a id="windows-troubleshooting"></a>
-
-#### Windows troubleshooting
-
-**Error: `Microsoft Visual C++ 14.0 or greater is required` or `Failed building wheel for pyyaml`**
-
-This means the virtual environment was created with a Python version that has no prebuilt package for PyYAML (for example Python 3.15), so pip tried to compile it from source. Do not install the C++ Build Tools. Recreate the environment with Python 3.12 instead:
-
-```powershell
-deactivate
-Remove-Item -Recurse -Force .venv
-py -3.12 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python --version
-pip install -r requirements.txt
-```
 
 If `py -3.12` reports that no matching Python was found, install Python 3.12 first (see Prerequisites above).
 
