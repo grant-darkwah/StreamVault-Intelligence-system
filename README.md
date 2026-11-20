@@ -298,9 +298,7 @@ StreamVault-Intelligence-system/
 ├── demos/              # Demonstration materials
 ├── docs/               # Project documentation
 ├── explore/            # Exploratory data analysis
-├── out/                # Generated analytical datasets
 ├── pipeline/           # Data pipeline modules
-├── source_system/      # Source system components
 ├── tests/              # Automated tests
 │
 ├── .env                # Environment variables (create locally; do not commit)
